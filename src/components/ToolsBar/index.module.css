@@ -11,7 +11,8 @@
 .tools_panel {
   box-shadow: var(--shadow-popup);
   border-radius: 12px;
-  background-color: var(--color-surface-panel);
+  /* background-color: var(--color-surface-panel); */
+  background-color: #ddd;
   display: flex;
   align-items: center;
   justify-content: center;

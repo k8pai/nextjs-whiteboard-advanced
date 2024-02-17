@@ -7,6 +7,7 @@ import {
   useOthersMapped,
   useCanUndo,
   useCanRedo,
+  useOthers,
 } from "../liveblocks.config";
 import { ClientSideSuspense } from "@liveblocks/react";
 import { LiveList, LiveMap, LiveObject } from "@liveblocks/client";
@@ -37,15 +38,17 @@ import { useRouter } from "next/router";
 import LayerComponent from "./components/LayerComponent";
 import SelectionTools from "./components/SelectionTools";
 import useDisableScrollBounce from "./hooks/useDisableScrollBounce";
-import useDeleteLayers from "./hooks/useDeleteLayers";
+import useDeleteLayers, { useDeleteAllLayers } from "./hooks/useDeleteLayers";
 import MultiplayerGuides from "./components/MultiplayerGuides";
 import Path from "./components/Path";
 import ToolsBar from "./components/ToolsBar";
+import { useSearchParams } from "next/navigation";
 
 const MAX_LAYERS = 100;
 
 export default function Room({ id = "nextjs-whiteboard-advanced" }) {
   const roomId = useOverrideRoomId(id);
+  const searchParams = useSearchParams();
 
   return (
     <RoomProvider
@@ -63,7 +66,7 @@ export default function Room({ id = "nextjs-whiteboard-advanced" }) {
     >
       <div className={styles.container}>
         <ClientSideSuspense fallback={<Loading />}>
-          {() => <Canvas />}
+          {() => <Canvas newPage={searchParams.get("new") || false} />}
         </ClientSideSuspense>
       </div>
     </RoomProvider>
@@ -80,8 +83,24 @@ function Loading() {
   );
 }
 
-function Canvas() {
+function Canvas({ newPage }: { newPage: string | boolean }) {
   const layerIds = useStorage((root) => root.layerIds);
+
+  const self = useSelf((self) => self);
+  const others = useOthers((other) => other);
+  const storage = useStorage((storage) => storage);
+  const deleteAllLayers = useDeleteAllLayers();
+
+  useEffect(() => {
+    if (newPage) {
+      console.log("newPage => ", newPage);
+      deleteAllLayers();
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("layers", storage);
+  }, [storage]);
 
   const pencilDraft = useSelf((me) => me.presence.pencilDraft);
   const [canvasState, setState] = useState<CanvasState>({
@@ -504,7 +523,7 @@ function Canvas() {
               transform: `translate(${camera.x}px, ${camera.y}px)`,
             }}
           >
-            {layerIds.map((layerId) => (
+            {layerIds?.map((layerId) => (
               <LayerComponent
                 key={layerId}
                 id={layerId}
@@ -548,6 +567,8 @@ function Canvas() {
         setCanvasState={setState}
         undo={history.undo}
         redo={history.redo}
+        clear={deleteAllLayers}
+        canClear={layerIds.length > 0}
         canUndo={canUndo}
         canRedo={canRedo}
       />

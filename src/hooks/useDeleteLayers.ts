@@ -1,4 +1,4 @@
-import { useSelf, useMutation } from "../../liveblocks.config";
+import { useSelf, useMutation, useStorage } from "../../liveblocks.config";
 
 /**
  * Delete all the selected layers.
@@ -22,4 +22,26 @@ export default function useDeleteLayers() {
     },
     [selection]
   );
+}
+
+/**
+ * Delete all layers.
+ */
+export function useDeleteAllLayers() {
+  return useMutation(({ storage, setMyPresence }) => {
+    const liveLayers = storage.get("layers");
+    const liveLayerIds = storage.get("layerIds");
+    let liveLayerIdsArray = liveLayerIds;
+    for (const id of liveLayerIdsArray.toArray()) {
+      // Delete the layer from the layers LiveMap
+      liveLayers.delete(id);
+
+      // Find the layer index in the z-index list and remove it
+      const index = liveLayerIds.indexOf(id);
+      if (index !== -1) {
+        liveLayerIds.delete(index);
+      }
+    }
+    setMyPresence({ selection: [] }, { addToHistory: false });
+  }, []);
 }

@@ -3,7 +3,7 @@ import ColorPicker from "./ColorPicker";
 import IconButton from "./IconButton";
 import { Camera, Color } from "../types";
 import styles from "./SelectionTools.module.css";
-import useDeleteLayers from "../hooks/useDeleteLayers";
+import useDeleteLayers, { useDeleteAllLayers } from "../hooks/useDeleteLayers";
 import useSelectionBounds from "../hooks/useSelectionBounds";
 import { useSelf, useMutation } from "../../liveblocks.config";
 
@@ -13,9 +13,11 @@ type SelectionToolsProps = {
   setLastUsedColor: (color: Color) => void;
 };
 
-function SelectionTools(
-  { isAnimated, camera, setLastUsedColor }: SelectionToolsProps
-) {
+function SelectionTools({
+  isAnimated,
+  camera,
+  setLastUsedColor,
+}: SelectionToolsProps) {
   const selection = useSelf((me) => me.presence.selection);
 
   /**
@@ -82,6 +84,7 @@ function SelectionTools(
   );
 
   const deleteLayers = useDeleteLayers();
+  const deleteAllLayers = useDeleteAllLayers();
 
   const selectionBounds = useSelectionBounds();
   if (!selectionBounds) {
